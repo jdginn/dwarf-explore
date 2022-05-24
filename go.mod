@@ -3,9 +3,15 @@ module github.com/jdginn/dwarf-explore
 go 1.18
 
 require (
-	github.com/charmbracelet/bubbletea v0.20.0 // indirect
+	github.com/charmbracelet/bubbles v0.10.3
+	github.com/charmbracelet/bubbletea v0.20.0
+	github.com/jdginn/durins-door v0.0.0-20220524142501-9f0e7af37db5
+)
+
+require (
+	github.com/atotto/clipboard v0.1.4 // indirect
+	github.com/charmbracelet/lipgloss v0.4.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/jdginn/durins-door v0.0.0-20220524142501-9f0e7af37db5 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
