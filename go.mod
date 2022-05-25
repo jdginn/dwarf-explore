@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.10.3
 	github.com/charmbracelet/bubbletea v0.20.0
 	github.com/charmbracelet/lipgloss v0.5.0
-	github.com/jdginn/durins-door v0.0.0-20220525003548-fe88db80adcd
+	github.com/jdginn/durins-door v0.0.0-20220525015633-fe2a89ac49f0
 )
 
 require (

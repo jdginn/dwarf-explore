@@ -70,6 +70,7 @@ const (
 	getReader
 	setClient
 	getObj
+	listCUs
 	viewObj
 )
 
@@ -85,6 +86,8 @@ func (s state) String() string {
 		return "setClient"
 	case getObj:
 		return "getObj"
+	case listCUs:
+		return "listCUs"
 	case viewObj:
 		return "viewObj"
 	}
@@ -97,6 +100,7 @@ func initialModel() model {
 		item("Get Reader"),
 		item("Set Client"),
 		item("Get Object"),
+		item("List CompileUnits"),
 	}
 
 	const defaultWidth = 20
@@ -134,12 +138,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 	case actionList:
 		stateMap := map[string]state{
-			"ActionList":  actionList,
-			"Info":        info,
-			"Get Reader":  getReader,
-			"Set Client":  setClient,
-			"Get Object":  getObj,
-			"View Object": viewObj,
+			"ActionList":        actionList,
+			"Info":              info,
+			"Get Reader":        getReader,
+			"Set Client":        setClient,
+			"Get Object":        getObj,
+			"List CompileUnits": listCUs,
+			"View Object":       viewObj,
 		}
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
@@ -159,12 +164,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch keypress := msg.String(); keypress {
-        case "enter":
-          m.explorer.CreateReaderFromFile(m.textInput.Value())
-          m.state = actionList
+			case "enter":
+				m.explorer.CreateReaderFromFile(m.textInput.Value())
+				m.state = actionList
 			}
 		}
-    m.textInput, cmd = m.textInput.Update(msg)
+		m.textInput, cmd = m.textInput.Update(msg)
+
+	case listCUs:
+		m.state = actionList
 	}
 
 	// Always allow us to quit
@@ -183,7 +191,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := "\n"
+	s := ""
 
 	switch m.state {
 	case actionList:
@@ -197,6 +205,13 @@ func (m model) View() string {
 	case getObj:
 		s += "Enter the path to an object to read from the DWARF.\n"
 		s += m.textInput.View()
+	case listCUs:
+	s += "CUs:\n"
+  CUs, err := m.explorer.ListCUs()
+  if err != nil { panic(err) }
+  for _, cu := range CUs {
+      s += "\t" + cu + "\n"
+    }
 	}
 
 	return s

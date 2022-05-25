@@ -17,6 +17,8 @@ github.com/jdginn/durins-door v0.0.0-20220524142501-9f0e7af37db5 h1:dt/vsMH7DJum
 github.com/jdginn/durins-door v0.0.0-20220524142501-9f0e7af37db5/go.mod h1:iM0jwC/eArCqbeKAw8LmFvDtIbx0tDHezyXGdXU7ybA=
 github.com/jdginn/durins-door v0.0.0-20220525003548-fe88db80adcd h1:aLoRRiv43kV8SRCKsKNtSx7zAcb01dORSc9pcTwmB4o=
 github.com/jdginn/durins-door v0.0.0-20220525003548-fe88db80adcd/go.mod h1:iM0jwC/eArCqbeKAw8LmFvDtIbx0tDHezyXGdXU7ybA=
+github.com/jdginn/durins-door v0.0.0-20220525015633-fe2a89ac49f0 h1:KOgoczQjRYgZqdmYeiP2mqL3Rt1f2b5YCiGDt7R7RFM=
+github.com/jdginn/durins-door v0.0.0-20220525015633-fe2a89ac49f0/go.mod h1:iM0jwC/eArCqbeKAw8LmFvDtIbx0tDHezyXGdXU7ybA=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
