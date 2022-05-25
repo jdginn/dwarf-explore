@@ -66,6 +66,7 @@ type state int
 
 const (
 	actionList state = iota
+	info
 	getReader
 	setClient
 	getObj
@@ -76,6 +77,8 @@ func (s state) String() string {
 	switch s {
 	case actionList:
 		return "actionList"
+	case info:
+		return "info"
 	case getReader:
 		return "getReader"
 	case setClient:
@@ -127,38 +130,49 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	stateMap := map[string]state{
-		"ActionList":  actionList,
-		"Get Reader":  getReader,
-		"Set Client":  setClient,
-		"Get Object":  getObj,
-		"View Object": viewObj,
-	}
 	var cmd tea.Cmd
 	switch m.state {
 	case actionList:
+		stateMap := map[string]state{
+			"ActionList":  actionList,
+			"Info":        info,
+			"Get Reader":  getReader,
+			"Set Client":  setClient,
+			"Get Object":  getObj,
+			"View Object": viewObj,
+		}
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch keypress := msg.String(); keypress {
-
 			case "enter":
 				i, ok := m.list.SelectedItem().(item)
 				if ok {
 					m.state = stateMap[string(i)]
-					fmt.Printf("State: %s", string(i))
+					fmt.Printf("State: %s\n", string(i))
 				}
 				return m, cmd
 			}
 		}
 		m.list, cmd = m.list.Update(msg)
+
+	case info:
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch keypress := msg.String(); keypress {
+			}
+		}
 	}
 
-  // Always allow us to quit
+	// Always allow us to quit
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "ctrl+c":
 			return m, tea.Quit
+
+		case "esc":
+			m.state = actionList
+
 		}
 	}
 	return m, cmd
@@ -170,6 +184,9 @@ func (m model) View() string {
 	switch m.state {
 	case actionList:
 		s += m.list.View()
+	case info:
+		s += fmt.Sprintf("Dwarf Explorer:\n")
+		s += fmt.Sprintf("\tReader:%s\n", m.explorer.GetReaderFilename())
 	case getReader:
 		s += "Enter the path to a Dwarf Debug file.\n"
 		s += m.textInput.View()
