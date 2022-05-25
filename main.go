@@ -155,12 +155,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.list, cmd = m.list.Update(msg)
 
-	case info:
+	case getReader:
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch keypress := msg.String(); keypress {
+        case "enter":
+          m.explorer.CreateReaderFromFile(m.textInput.Value())
+          m.state = actionList
 			}
 		}
+    m.textInput, cmd = m.textInput.Update(msg)
 	}
 
 	// Always allow us to quit
@@ -186,7 +190,7 @@ func (m model) View() string {
 		s += m.list.View()
 	case info:
 		s += fmt.Sprintf("Dwarf Explorer:\n")
-		s += fmt.Sprintf("\tReader:%s\n", m.explorer.GetReaderFilename())
+		s += fmt.Sprintf("\tReader: %s\n", m.explorer.GetReaderFilename())
 	case getReader:
 		s += "Enter the path to a Dwarf Debug file.\n"
 		s += m.textInput.View()
