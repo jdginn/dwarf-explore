@@ -2,54 +2,15 @@ package interactive
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"github.com/jdginn/durins-door/explorer"
+	"github.com/jdginn/dwarf-explore/explorer/interactive/style"
 )
-
-const listHeight = 14
-
-var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
-)
-
-type item string
-
-func (i item) FilterValue() string { return "" }
-
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int                               { return 1 }
-func (d itemDelegate) Spacing() int                              { return 0 }
-func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
-	if !ok {
-		return
-	}
-
-	str := fmt.Sprintf("%d. %s", index+1, i)
-
-	fn := itemStyle.Render
-	if index == m.Index() {
-		fn = func(s string) string {
-			return selectedItemStyle.Render("> " + s)
-		}
-	}
-
-	fmt.Fprintf(w, fn(str))
-}
 
 type errMsg error
 
@@ -94,24 +55,12 @@ func (s state) String() string {
 	return "unknown"
 }
 
-func initialModel() model {
+func initialModel(file string) model {
 	actions := []list.Item{
-		item("Info"),
-		item("Get Reader"),
-		item("Set Client"),
-		item("Get Object"),
-		item("List CompileUnits"),
+		style.ListItem("Info"),
+		style.ListItem("Explore!"),
+		style.ListItem("List CompileUnits"),
 	}
-
-	const defaultWidth = 20
-
-	l := list.New(actions, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select an action:"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle
 
 	ti := textinput.New()
 	ti.Placeholder = ""
@@ -119,14 +68,16 @@ func initialModel() model {
 	ti.CharLimit = 156
 	ti.Width = 20
 
-	return model{
+	m := model{
 		explorer.NewExplorer(),
 		actionList,
-		l,
+		style.BuildList(actions, "Select an action:"),
 		ti,
 		true,
 		nil,
 	}
+	m.explorer.CreateReaderFromFile(file)
+	return m
 }
 
 func (m model) Init() tea.Cmd {
@@ -150,10 +101,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyMsg:
 			switch keypress := msg.String(); keypress {
 			case "enter":
-				i, ok := m.list.SelectedItem().(item)
+				i, ok := m.list.SelectedItem().(style.ListItem)
 				if ok {
 					m.state = stateMap[string(i)]
-					fmt.Printf("State: %s\n", string(i))
 				}
 				return m, cmd
 			}
@@ -219,9 +169,8 @@ func (m model) View() string {
 	return s
 }
 
-func Start() {
-
-	p := tea.NewProgram(initialModel())
+func Start(file string) {
+	p := tea.NewProgram(initialModel(file))
 	if err := p.Start(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
