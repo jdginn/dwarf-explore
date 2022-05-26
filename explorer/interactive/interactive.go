@@ -12,25 +12,13 @@ import (
 	"github.com/jdginn/dwarf-explore/explorer/interactive/style"
 )
 
-type errMsg error
-
-type model struct {
-	explorer   *explorer.Explorer
-	state      state
-	list       list.Model
-	textInput  textinput.Model
-	textPrompt bool
-	err        error
-}
-
+// Represents the state of the CLI
 type state int
 
 const (
 	actionList state = iota
 	info
-	getReader
-	setClient
-	getObj
+	explore
 	listCUs
 	viewObj
 )
@@ -41,25 +29,42 @@ func (s state) String() string {
 		return "actionList"
 	case info:
 		return "info"
-	case getReader:
-		return "getReader"
-	case setClient:
-		return "setClient"
-	case getObj:
-		return "getObj"
+	case explore:
+		return "explore"
 	case listCUs:
 		return "listCUs"
-	case viewObj:
-		return "viewObj"
 	}
 	return "unknown"
+}
+
+func stateMap() map[string]state {
+	return map[string]state{
+		"ActionList": actionList,
+		"Info":       info,
+		"Explore!":   explore,
+	}
+}
+
+func stateCallbacks() map[string]func(m *model) {
+	return map[string]func(m *model){
+		"Info":     func(m *model) { m.state = info },
+		"Explore!": initExplore,
+	}
+}
+
+type model struct {
+	explorer   *explorer.Explorer
+	state      state
+	list       list.Model
+	textInput  textinput.Model
+	textPrompt bool
+	err        error
 }
 
 func initialModel(file string) model {
 	actions := []list.Item{
 		style.ListItem("Info"),
 		style.ListItem("Explore!"),
-		style.ListItem("List CompileUnits"),
 	}
 
 	ti := textinput.New()
@@ -87,42 +92,30 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch m.state {
+
+	// Basic case to allow selcting an action
 	case actionList:
-		stateMap := map[string]state{
-			"ActionList":        actionList,
-			"Info":              info,
-			"Get Reader":        getReader,
-			"Set Client":        setClient,
-			"Get Object":        getObj,
-			"List CompileUnits": listCUs,
-			"View Object":       viewObj,
-		}
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch keypress := msg.String(); keypress {
 			case "enter":
 				i, ok := m.list.SelectedItem().(style.ListItem)
 				if ok {
-					m.state = stateMap[string(i)]
+					stateCallbacks()[string(i)](&m)
 				}
 				return m, cmd
 			}
 		}
 		m.list, cmd = m.list.Update(msg)
 
-	case getReader:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch keypress := msg.String(); keypress {
-			case "enter":
-				m.explorer.CreateReaderFromFile(m.textInput.Value())
-				m.state = actionList
-			}
-		}
 		m.textInput, cmd = m.textInput.Update(msg)
 
+		// Actions are implemented here
 	case listCUs:
 		m.state = actionList
+
+	case explore:
+		m, msg = ExploreUpdate(m, msg)
 	}
 
 	// Always allow us to quit
@@ -134,7 +127,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "esc":
 			m.state = actionList
-
 		}
 	}
 	return m, cmd
@@ -149,12 +141,8 @@ func (m model) View() string {
 	case info:
 		s += fmt.Sprintf("Dwarf Explorer:\n")
 		s += fmt.Sprintf("\tReader: %s\n", m.explorer.GetReaderFilename())
-	case getReader:
-		s += "Enter the path to a Dwarf Debug file.\n"
-		s += m.textInput.View()
-	case getObj:
-		s += "Enter the path to an object to read from the DWARF.\n"
-		s += m.textInput.View()
+	case explore:
+		s += ExploreView(m)
 	case listCUs:
 		s += "CUs:\n"
 		CUs, err := m.explorer.ListCUs()
