@@ -1,6 +1,8 @@
 package interactive
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/list"
 	// "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,7 +37,8 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	m.textInput, cmd = m.textInput.Update(msg)
 
-	// Always allow us to quit
+	m.msg = fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName())
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
@@ -51,13 +54,38 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 			}
 			return m, cmd
 
-		case "u":
-			m.explorer.Up()
+		// Show info about this entry
+		case "i":
+			m.msg = m.explorer.Info()
+
+		// Show this entry's type
+		case "t":
+			m.explorer.GetType()
 			items, err := getEntryNames(m.explorer)
 			if err != nil {
 				panic(err)
 			}
-			m.list = style.BuildList(items, "Select an entry...")
+			m.list = style.BuildList(items, "Viewing types...")
+			return m, cmd
+
+		// Look at variables instead of types
+		case "v":
+
+    // Go up one level
+		case "u":
+			ok := m.explorer.Up()
+			if ok {
+				items, err := getEntryNames(m.explorer)
+				if err != nil {
+					panic(err)
+				}
+				m.list = style.BuildList(items, "Select an entry...")
+			}
+			return m, cmd
+
+		case "ctrl+c":
+			m.state = actionList
+			return m, tea.Quit
 
 		case "esc":
 			m.state = actionList
