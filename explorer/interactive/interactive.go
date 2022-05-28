@@ -58,7 +58,7 @@ type model struct {
 	list       list.Model
 	textInput  textinput.Model
 	textPrompt bool
-  msg        string
+	msg        string
 	err        error
 }
 
@@ -80,7 +80,7 @@ func initialModel(file string) model {
 		style.BuildList(actions, "Select an action:"),
 		ti,
 		true,
-    "",
+		"",
 		nil,
 	}
 	m.explorer.CreateReaderFromFile(file)
@@ -155,8 +155,8 @@ func (m model) View() string {
 			s += "\t" + cu + "\n"
 		}
 	}
-  s += m.msg
-  m.msg = ""
+	s += m.msg
+	m.msg = ""
 
 	return s
 }
