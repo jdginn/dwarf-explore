@@ -23,6 +23,14 @@ func getEntryNames(e *explorer.Explorer) ([]list.Item, error) {
 	return items, nil
 }
 
+func stringsToItems(s []string) []list.Item {
+	items := make([]list.Item, 0, len(s))
+	for _, n := range s {
+		items = append(items, style.ListItem(n))
+	}
+	return items
+}
+
 func initExplore(m *model) {
 	items, err := getEntryNames(m.explorer)
 	if err != nil {
@@ -36,8 +44,6 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	m.textInput, cmd = m.textInput.Update(msg)
-
-	// m.msg = fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName())
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -60,11 +66,12 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		// Show this entry's type
 		case "t":
-			m.explorer.GetType()
-			items, err := getEntryNames(m.explorer)
+			proxy, err := m.explorer.GetTypeDefProxy()
 			if err != nil {
 				panic(err)
 			}
+			names := proxy.ListChildren()
+			items := stringsToItems(names)
 			m.list = style.BuildList(items, fmt.Sprintf("Currently viewing type %s", m.explorer.CurrEntryName()))
 			m.msg = m.explorer.Info()
 			return m, cmd
