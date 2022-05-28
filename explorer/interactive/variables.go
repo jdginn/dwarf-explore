@@ -4,59 +4,32 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
-	// "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/jdginn/durins-door/explorer"
 	"github.com/jdginn/dwarf-explore/explorer/interactive/style"
 )
 
-func stringsToItems(s []string) []list.Item {
-	items := make([]list.Item, 0, len(s))
-	for _, n := range s {
+func getEntryNames(e *explorer.Explorer) ([]list.Item, error) {
+	names, err := e.ShowAllChildren()
+	items := make([]list.Item, 0, len(names))
+	if err != nil {
+		return items, err
+	}
+	for _, n := range names {
 		items = append(items, style.ListItem(n))
 	}
-	return items
+	return items, nil
 }
 
-func initExplore(m *model) {
-	items, err := getEntryNames(m.explorer)
-	if err != nil {
-		panic(err)
-	}
-	m.list = style.BuildList(items, "Select an entry...")
-	m.state = explore
-}
-
-// Handle keystrokes shared by all explore actions:
-//
-//  i:      view verbose info on this entry's attributes
-//  ctrl+c: exit the program
-//  esc:    return to the main menu
-func sharedUpdate(m model, keypress string) (model, tea.Cmd) {
-	var cmd tea.Cmd
-	switch keypress {
-	case "i":
-		m.msg = m.explorer.Info()
-
-	case "ctrl+c":
-		m.state = actionList
-		cmd = tea.Quit
-
-	case "esc":
-		m.state = actionList
-	}
-	return m, cmd
-}
-
-func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
+func variableUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	m.textInput, cmd = m.textInput.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		keypress := msg.String()
-		switch keypress {
+		switch keypress := msg.String(); keypress {
 		case "enter":
 			i, ok := m.list.SelectedItem().(style.ListItem)
 			if ok {
@@ -96,12 +69,7 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 			}
 			return m, cmd
 		}
-		return sharedUpdate(m, keypress)
 	}
 
 	return m, cmd
-}
-
-func ExploreView(m model) string {
-	return m.list.View()
 }
