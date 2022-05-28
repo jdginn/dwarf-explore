@@ -37,7 +37,7 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	m.textInput, cmd = m.textInput.Update(msg)
 
-	m.msg = fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName())
+	// m.msg = fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName())
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -50,7 +50,7 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 				if err != nil {
 					panic(err)
 				}
-				m.list = style.BuildList(items, "Select an entry...")
+				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName()))
 			}
 			return m, cmd
 
@@ -65,13 +65,14 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 			if err != nil {
 				panic(err)
 			}
-			m.list = style.BuildList(items, "Viewing types...")
+			m.list = style.BuildList(items, fmt.Sprintf("Currently viewing type %s", m.explorer.CurrEntryName()))
+			m.msg = m.explorer.Info()
 			return m, cmd
 
 		// Look at variables instead of types
 		case "v":
 
-    // Go up one level
+			// Go up one level
 		case "u":
 			ok := m.explorer.Up()
 			if ok {
@@ -79,7 +80,7 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 				if err != nil {
 					panic(err)
 				}
-				m.list = style.BuildList(items, "Select an entry...")
+				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName()))
 			}
 			return m, cmd
 

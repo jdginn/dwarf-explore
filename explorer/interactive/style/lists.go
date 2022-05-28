@@ -10,7 +10,7 @@ import (
 )
 
 const listHeight = 14
-const defaultWidth = 20
+const defaultWidth = 60
 
 var (
 	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
