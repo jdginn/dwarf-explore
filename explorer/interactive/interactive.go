@@ -55,6 +55,7 @@ func stateCallbacks() map[string]func(m *model) {
 type model struct {
 	explorer   *explorer.Explorer
 	state      state
+  exploreMode exploreMode
 	list       list.Model
 	textInput  textinput.Model
 	textPrompt bool
@@ -75,15 +76,15 @@ func initialModel(file string) model {
 	ti.Width = 20
 
 	m := model{
-		explorer.NewExplorer(),
+		explorer.NewExplorerFromFile(file),
 		actionList,
+    variable,
 		style.BuildList(actions, "Select an action:"),
 		ti,
 		true,
 		"",
 		nil,
 	}
-	m.explorer.CreateReaderFromFile(file)
 	return m
 }
 
@@ -142,7 +143,7 @@ func (m model) View() string {
 		s += m.list.View()
 	case info:
 		s += fmt.Sprintf("Dwarf Explorer:\n")
-		s += fmt.Sprintf("\tReader: %s\n", m.explorer.GetReaderFilename())
+		s += fmt.Sprintf("\tReader: %s\n", m.explorer.DwarfFile)
 	case explore:
 		s += ExploreView(m)
 	case listCUs:
