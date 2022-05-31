@@ -55,7 +55,6 @@ func stateCallbacks() map[string]func(m *model) {
 type model struct {
 	explorer   *explorer.Explorer
 	state      state
-  exploreMode exploreMode
 	list       list.Model
 	textInput  textinput.Model
 	textPrompt bool
@@ -78,7 +77,6 @@ func initialModel(file string) model {
 	m := model{
 		explorer.NewExplorerFromFile(file),
 		actionList,
-    variable,
 		style.BuildList(actions, "Select an action:"),
 		ti,
 		true,
