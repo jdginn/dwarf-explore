@@ -55,18 +55,6 @@ func initExplore(m *model) {
 func sharedUpdate(m model, keypress string) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch keypress {
-	case "i":
-		m.msg = m.explorer.Info()
-
-	case "b":
-		m.explorer.Back()
-
-	case "ctrl+c":
-		m.state = actionList
-		cmd = tea.Quit
-
-	case "esc":
-		m.state = actionList
 	}
 	return m, cmd
 }
@@ -83,7 +71,10 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			i, ok := m.list.SelectedItem().(style.ListItem)
 			if ok {
-				m.explorer.StepIntoChild(string(i))
+				err := m.explorer.StepIntoChild(string(i))
+				if err != nil {
+					panic(err)
+				}
 				items := stringsToItems(m.explorer.ListChildren())
 				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrName()))
 			}
@@ -108,8 +99,24 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrName()))
 			}
 			return m, cmd
+		case "i":
+			m.msg = m.explorer.Info()
+
+		case "b":
+			m.explorer.Back()
+			_, ok := m.list.SelectedItem().(style.ListItem)
+			if ok {
+				items := stringsToItems(m.explorer.ListChildren())
+				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrName()))
+			}
+
+		case "ctrl+c":
+			m.state = actionList
+			cmd = tea.Quit
+
+		case "esc":
+			m.state = actionList
 		}
-		return sharedUpdate(m, keypress)
 	}
 
 	return m, cmd
