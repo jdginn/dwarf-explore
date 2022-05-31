@@ -4,10 +4,32 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
-	// "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/jdginn/dwarf-explore/explorer/interactive/style"
+)
+
+// Supported functionality:
+//
+// TypeDefs:
+//  list: step into children
+//  i: show info
+//  l: list all instances,
+//      then select a variable from the instances
+//  u: go to parent
+//
+// Variables:
+//  list: step into children according to typedef
+//  i: show info
+//  t: get typedef
+//  v: get value
+//  u: go to parent according to typedef
+
+type exploreMode int
+
+const (
+	variable exploreMode = iota
+	typedef
 )
 
 func stringsToItems(s []string) []list.Item {
@@ -19,17 +41,15 @@ func stringsToItems(s []string) []list.Item {
 }
 
 func initExplore(m *model) {
-	items, err := getEntryNames(m.explorer)
-	if err != nil {
-		panic(err)
-	}
-	m.list = style.BuildList(items, "Select an entry...")
+	items := stringsToItems(m.explorer.ListChildren())
+	m.list = style.BuildList(items, "Select an item...")
 	m.state = explore
 }
 
 // Handle keystrokes shared by all explore actions:
 //
 //  i:      view verbose info on this entry's attributes
+//  b:      go back to the last thing we were doing
 //  ctrl+c: exit the program
 //  esc:    return to the main menu
 func sharedUpdate(m model, keypress string) (model, tea.Cmd) {
@@ -37,6 +57,9 @@ func sharedUpdate(m model, keypress string) (model, tea.Cmd) {
 	switch keypress {
 	case "i":
 		m.msg = m.explorer.Info()
+
+	case "b":
+		m.explorer.Back()
 
 	case "ctrl+c":
 		m.state = actionList
@@ -61,38 +84,28 @@ func ExploreUpdate(m model, msg tea.Msg) (model, tea.Cmd) {
 			i, ok := m.list.SelectedItem().(style.ListItem)
 			if ok {
 				m.explorer.StepIntoChild(string(i))
-				items, err := getEntryNames(m.explorer)
-				if err != nil {
-					panic(err)
-				}
-				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName()))
+				items := stringsToItems(m.explorer.ListChildren())
+				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrName()))
 			}
 			return m, cmd
 
 		// Show this entry's type
 		case "t":
-			proxy, err := m.explorer.GetTypeDefProxy()
+			err := m.explorer.GetType()
 			if err != nil {
 				panic(err)
 			}
-			names := proxy.ListChildren()
-			items := stringsToItems(names)
-			m.list = style.BuildList(items, fmt.Sprintf("Currently viewing type %s", m.explorer.CurrEntryName()))
+			items := stringsToItems(m.explorer.ListChildren())
+			m.list = style.BuildList(items, fmt.Sprintf("Currently viewing type %s", m.explorer.CurrName()))
 			m.msg = m.explorer.Info()
 			return m, cmd
-
-		// Look at variables instead of types
-		case "v":
 
 			// Go up one level
 		case "u":
 			ok := m.explorer.Up()
 			if ok {
-				items, err := getEntryNames(m.explorer)
-				if err != nil {
-					panic(err)
-				}
-				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrEntryName()))
+				items := stringsToItems(m.explorer.ListChildren())
+				m.list = style.BuildList(items, fmt.Sprintf("Currently viewing %s", m.explorer.CurrName()))
 			}
 			return m, cmd
 		}
